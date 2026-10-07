@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ececec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SO2 Calculator">
+<title>Sulfur Dioxide Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Doto:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ececec;
+    --dots: rgba(0,0,0,.13);
+    --card: #ffffff;
+    --ink: #0b0b0b;
+    --muted: #8a8a8a;
+    --line: #cfcfcf;
+    --fill: #e4e4e4;
+    --red: #d71921;
+    --disp: "Doto", ui-monospace, "SF Mono", Menlo, monospace;
+    --mono: "Space Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #000000; --dots: rgba(255,255,255,.12); --card: #111111; --ink: #f4f4f4; --muted: #7f7f7f; --line: #3a3a3a; --fill: #232323; } }
+  :root[data-theme="dark"] { --bg: #000000; --dots: rgba(255,255,255,.12); --card: #111111; --ink: #f4f4f4; --muted: #7f7f7f; --line: #3a3a3a; --fill: #232323; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background-color: var(--bg);
+    background-image: radial-gradient(circle, var(--dots) 1px, transparent 1.4px);
+    background-size: 14px 14px;
+    color: var(--ink);
+    font: 400 14px/1.45 var(--mono);
+    padding: env(safe-area-inset-top, 0) 0 calc(env(safe-area-inset-bottom, 0px) + 28px);
+  }
+  main { max-width: 540px; margin: 0 auto; padding: 8px 16px 0; }
+  h1 {
+    font: 700 46px/0.95 var(--disp);
+    margin: 22px 2px 10px;
+    letter-spacing: 0;
+  }
+  .sub { color: var(--muted); margin: 0 2px 6px; font-size: 13px; }
+  .group-title {
+    font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px;
+    margin: 28px 8px 8px; display: flex; align-items: center; gap: 8px;
+  }
+  .group-title::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--red); flex: 0 0 auto; }
+  .group { background: var(--card); border-radius: 26px; overflow: hidden; }
+  .row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    min-height: 52px; padding: 6px 20px; position: relative;
+  }
+  .row + .row { border-top: 2px dotted var(--line); }
+  .row label { flex: 1 1 auto; font-size: 14px; }
+  .row.field label { flex: 0 0 auto; }
+  .row input[type=text] {
+    flex: 1 1 auto; min-width: 0; text-align: right;
+    border: 0; background: transparent; color: var(--ink);
+    font: 400 17px var(--mono); padding: 10px 0; outline: none;
+    -webkit-appearance: none; appearance: none; border-radius: 0;
+  }
+  .row input::placeholder { color: #bdbdbd; opacity: 1; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .row input::placeholder { color: #4a4a4a; } }
+  :root[data-theme="dark"] .row input::placeholder { color: #4a4a4a; }
+  .top { display: flex; justify-content: flex-end; padding-top: 10px; }
+  .themebtn { display: flex; align-items: center; gap: 8px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); font: 400 12px/1 var(--mono); padding: 10px 14px; border-radius: 999px; cursor: pointer; }
+  .themebtn::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
+  .row input:focus { color: var(--red); }
+  .unit { color: var(--muted); font-size: 12px; flex: 0 0 auto; }
+  .foot { font-size: 11.5px; color: var(--muted); margin: 9px 10px 0; line-height: 1.5; }
+
+  .seg { display: flex; border: 1.5px solid var(--ink); border-radius: 999px; padding: 3px; gap: 2px; }
+  .seg.block { margin: 12px 14px; }
+  .seg button {
+    flex: 1; border: 0; background: transparent; color: var(--ink);
+    font: 400 12.5px/1 var(--mono); padding: 11px 4px; border-radius: 999px; cursor: pointer;
+  }
+  .seg button.on { background: var(--ink); color: var(--card); font-weight: 700; }
+
+  .switch { position: relative; width: 52px; height: 30px; flex: 0 0 auto; }
+  .switch input {
+    appearance: none; -webkit-appearance: none; width: 52px; height: 30px; margin: 0;
+    border-radius: 999px; background: var(--fill); border: 1.5px solid var(--line);
+    transition: background .2s, border-color .2s; cursor: pointer;
+  }
+  .switch input::after {
+    content: ""; position: absolute; top: 5px; left: 5px; width: 20px; height: 20px; border-radius: 50%;
+    background: var(--ink); transition: transform .2s, background .2s;
+  }
+  .switch input:checked { background: var(--ink); border-color: var(--ink); }
+  .switch input:checked::after { transform: translateX(22px); background: var(--red); }
+  .row.tap { cursor: pointer; }
+
+  .hero { background: var(--ink); color: var(--card); border-radius: 30px; padding: 24px 22px 22px; margin-top: 28px; }
+  .hero .lbl { font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; opacity: .6; display: flex; align-items: center; gap: 8px; }
+  .hero .lbl::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--red); }
+  .hero .nums { display: flex; gap: 0; margin-top: 14px; }
+  .hero .num { flex: 1 1 50%; min-width: 0; }
+  .hero .num + .num { border-left: 2px dotted rgba(128,128,128,.5); padding-left: 18px; }
+  .hero .big { font: 900 52px/1 var(--disp); letter-spacing: 0; word-break: break-all; }
+  .hero .u { font-size: 12px; opacity: .6; margin-top: 6px; }
+  .hero .prod { font-size: 13px; margin-top: 18px; }
+  .hero p { margin: 8px 0 0; font-size: 12px; opacity: .6; line-height: 1.5; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 13px 20px; text-align: right; font-size: 15px; font-variant-numeric: tabular-nums; }
+  th { font-size: 11px; color: var(--muted); font-weight: 400; text-transform: uppercase; letter-spacing: 1px; padding-top: 16px; padding-bottom: 6px; }
+  th:first-child, td:first-child { text-align: left; }
+  tbody tr + tr td { border-top: 2px dotted var(--line); }
+  td.after { font-weight: 700; }
+  td .u { color: var(--muted); font-size: 11px; font-weight: 400; }
+
+  .status { display: flex; align-items: center; gap: 12px; padding: 20px 20px 6px; }
+  .dot { width: 14px; height: 14px; border-radius: 50%; flex: 0 0 auto; }
+  .status b { font: 700 24px/1 var(--disp); }
+  .gauge-wrap { padding: 6px 20px 6px; }
+  .pins { position: relative; height: 40px; }
+  .pin { position: absolute; bottom: 0; transform: translateX(-50%); font-size: 10px; font-weight: 700; text-align: center; white-space: nowrap; line-height: 1.2; }
+  .pin::after { content: ""; display: block; width: 2px; height: 8px; background: var(--ink); margin: 2px auto 0; }
+  .pin.now { color: var(--muted); }
+  .pin.now::after { background: var(--muted); }
+  .dots { display: grid; grid-template-columns: repeat(50, 1fr); }
+  .dots span { display: block; width: 62%; aspect-ratio: 1; border-radius: 50%; margin: 0 auto; opacity: .16; }
+  .dots span.f { opacity: 1; }
+  .scale { position: relative; height: 18px; font-size: 10px; color: var(--muted); margin-top: 6px; }
+  .scale i { position: absolute; transform: translateX(-50%); font-style: normal; }
+  .lvltext { padding: 6px 20px 20px; font-size: 12px; color: var(--muted); }
+  .notes p { margin: 10px 10px 0; font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; margin-top: 28px; padding: 18px; border: 0; border-radius: 999px;
+    background: var(--ink); color: var(--card); font: 700 13px/1 var(--mono); letter-spacing: 1.2px; text-transform: uppercase; cursor: pointer;
+  }
+  .btn::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
+  .btn:disabled { opacity: .3; cursor: default; }
+  .btn:active:not(:disabled) { opacity: .75; }
+
+  details { margin-top: 26px; }
+  summary { font-size: 12px; cursor: pointer; padding: 6px 8px; text-decoration: underline dotted; text-underline-offset: 4px; }
+  details .doc { font-size: 12px; color: var(--muted); padding: 4px 8px 0; line-height: 1.55; }
+  details code { font: 12px var(--mono); background: var(--fill); padding: 2px 6px; border-radius: 6px; color: var(--ink); display: inline-block; margin: 2px 0; }
+  details li { margin: 4px 0; }
+  .err { color: var(--red); font-size: 11.5px; margin: 8px 10px 0; }
+
+  footer { margin: 40px 8px 0; padding-top: 16px; border-top: 2px dotted var(--line); text-align: center; font-size: 11px; color: var(--muted); letter-spacing: .4px; }
+  footer b { color: var(--ink); font-weight: 700; }
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><button class="themebtn" id="themeBtn" type="button">Sfondo scuro</button></div>
+  <h1>Sulfur Dioxide Calculator</h1>
+  <p class="sub">Dose di solforosa e protezione del vino.</p>
+
+  <div class="group-title">Campione</div>
+  <div class="group">
+    <div class="row field">
+      <label for="nome">Nome</label>
+      <input id="nome" type="text" placeholder="es. Sangiovese 2025" autocomplete="off" autocapitalize="sentences">
+    </div>
+  </div>
+
+  <div class="group-title">Vino</div>
+  <div class="group">
+    <div class="seg block" id="segColor">
+      <button data-v="bianco" class="on">Bianco</button>
+      <button data-v="rosso">Rosso</button>
+      <button data-v="spumante">Spumante</button>
+    </div>
+    <div class="row tap" id="rowSugar">
+      <label for="sugar">Con residuo zuccherino</label>
+      <span class="switch"><input type="checkbox" id="sugar"></span>
+    </div>
+    <div class="row tap" id="rowSweet">
+      <label for="sweet">Vino dolce</label>
+      <span class="switch"><input type="checkbox" id="sweet"></span>
+    </div>
+    <div class="row field"><label for="vol">Volume</label><input id="vol" type="text" inputmode="decimal" placeholder="es. 10"><span class="unit">hL</span></div>
+    <div class="row field"><label for="alc">Alcol</label><input id="alc" type="text" inputmode="decimal" placeholder="es. 12,5"><span class="unit">% vol</span></div>
+    <div class="row field"><label for="ph">pH</label><input id="ph" type="text" inputmode="decimal" placeholder="es. 3,40"></div>
+    <div class="row field"><label for="temp">Temperatura</label><input id="temp" type="text" inputmode="decimal" placeholder="es. 18"><span class="unit">°C</span></div>
+  </div>
+
+  <div class="group-title">Solforosa attuale</div>
+  <div class="group">
+    <div class="row field"><label for="free0">Libera</label><input id="free0" type="text" inputmode="decimal" placeholder="es. 15"><span class="unit">mg/L</span></div>
+    <div class="row field"><label for="tot0">Totale</label><input id="tot0" type="text" inputmode="decimal" placeholder="es. 60"><span class="unit">mg/L</span></div>
+  </div>
+  <div class="foot">Se non le hai misurate lascia vuoto: il vino è considerato senza solforosa.</div>
+  <div class="err" id="err"></div>
+
+  <div class="group-title">Obiettivo</div>
+  <div class="group">
+    <div class="seg block" id="segMode">
+      <button data-v="rec" class="on">Consigliato</button>
+      <button data-v="mol">Molecolare</button>
+      <button data-v="free">Libera</button>
+    </div>
+    <div class="row field" id="rowTarget" style="display:none">
+      <label for="target" id="targetLabel">Valore</label>
+      <input id="target" type="text" inputmode="decimal" placeholder="es. 0,8"><span class="unit">mg/L</span>
+    </div>
+  </div>
+  <div class="foot" id="recFoot"></div>
+
+  <div class="group-title">Stima del legame</div>
+  <div class="group">
+    <div class="seg block" id="segBind">
+      <button data-v="mid" class="on">Prudente</button>
+      <button data-v="model">Equilibrio</button>
+      <button data-v="fixed">Tasso fisso</button>
+    </div>
+  </div>
+  <div class="foot" id="bindFoot"></div>
+
+  <div class="group-title">Prodotto</div>
+  <div class="group">
+    <div class="seg block" id="segProd">
+      <button data-v="K" class="on">Potassio</button>
+      <button data-v="Na">Sodio</button>
+      <button data-v="NH4">Ammonio</button>
+    </div>
+    <div class="seg block" id="segTitre" style="display:none">
+      <button data-v="400" class="on">400 g/L</button>
+      <button data-v="600">600 g/L</button>
+      <button data-v="alt">Altro</button>
+    </div>
+    <div class="row field" id="rowTitre" style="display:none"><label for="titre">Titolo in SO₂</label><input id="titre" type="text" inputmode="decimal" placeholder="es. 500"><span class="unit">g/L</span></div>
+    <div class="row field" id="rowNh4" style="display:none"><label for="nh4">Ammonio nel prodotto</label><input id="nh4" type="text" inputmode="decimal" placeholder="vuoto = stimato"><span class="unit">g/L</span></div>
+    <div class="row tap" id="rowOld">
+      <label for="old">Confezione vecchia o aperta da tempo</label>
+      <span class="switch"><input type="checkbox" id="old"></span>
+    </div>
+  </div>
+  <div class="foot" id="prodFoot"></div>
+
+  <div class="hero" id="hero">
+    <div class="lbl">Da aggiungere</div>
+    <div class="nums">
+      <div class="num"><div class="big" id="perHl">–</div><div class="u" id="perHlU">per ettolitro</div></div>
+      <div class="num"><div class="big" id="totAmt">–</div><div class="u" id="totAmtU">alla massa</div></div>
+    </div>
+    <div class="prod" id="prodName"></div>
+    <p id="gramsNote">Compila volume, alcol, pH e temperatura.</p>
+  </div>
+
+  <div class="group-title">Prima e dopo</div>
+  <div class="group">
+    <table>
+      <thead><tr><th></th><th>Ora</th><th>Dopo</th></tr></thead>
+      <tbody>
+        <tr><td>Libera <span class="u">mg/L</span></td><td id="f0">–</td><td class="after" id="f1">–</td></tr>
+        <tr><td>Totale <span class="u">mg/L</span></td><td id="t0">–</td><td class="after" id="t1">–</td></tr>
+        <tr><td>Combinata <span class="u">mg/L</span></td><td id="c0">–</td><td id="c1">–</td></tr>
+        <tr><td>Molecolare <span class="u">mg/L</span></td><td id="m0">–</td><td class="after" id="m1">–</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="foot" id="pkaFoot"></div>
+
+  <div class="group-title">Protezione</div>
+  <div class="group">
+    <div class="status"><span class="dot" id="dot" style="background:var(--line)"></span><b id="lvl">–</b></div>
+    <div class="gauge-wrap">
+      <div class="pins" id="pins"></div>
+      <div class="dots" id="gauge"></div>
+      <div class="scale" id="scale"></div>
+    </div>
+    <div class="lvltext" id="lvlText">Scala: SO₂ molecolare in mg/L.</div>
+  </div>
+  <div class="notes" id="notes"></div>
+
+  <button class="btn" id="pdfBtn" disabled>Crea report PDF</button>
+
+  <details>
+    <summary>Formule e fonti</summary>
+    <div class="doc">
+      <p><b>SO₂ molecolare</b> (Henderson–Hasselbalch)<br><code>molecolare = libera / (1 + 10^(pH − pKa₁))</code></p>
+      <p><b>pKa₁ corretto</b> per temperatura e alcol (Usseglio-Tomasset; metodo OIV-MA-AS323-04C)<br><code>pKa₁ = 1,9499 + 0,0322·(T − 20) + 0,01971·(alcol − 10)</code></p>
+      <p><b>Legame della solforosa.</b> Il bisolfito si lega soprattutto ad acetaldeide (Kd dell'ordine di 10⁻⁶ M, Burroughs e Sparks 1973), poi a chetoacidi, antociani e zuccheri. Il modello di <i>equilibrio</i> usa<br><code>Kd = [HSO₃⁻]·[legante libero] / [complesso]</code><br>Dai valori di libera e totale stima il legante ancora libero, poi cerca la dose che porta la libera, dopo il legame, al valore voluto. Se il vino non ha solforosa ipotizza circa 20 mg/L di acetaldeide.</p>
+      <p><b>Tasso fisso.</b> Regola pratica: si lega il 33 % della solforosa aggiunta nei secchi, il 50 % nei dolci (40 % per il residuo zuccherino, stima mia).<br><code>aggiunta = (obiettivo − libera) / (1 − tasso)</code><br><b>Prudente</b> (predefinito) usa la media tra la dose del modello di equilibrio e quella a tasso fisso.</p>
+      <p><b>Colore, zuccheri e vino dolce</b> aumentano la quota di leganti (fattori empirici) e alzano l'obiettivo consigliato di molecolare: secco 0,5–0,8 (rosso 0,3–0,6 all'imbottigliamento), con zucchero e dolci 0,8–1,2.</p>
+      <p><b>Prodotti.</b> Metabisolfito di potassio K₂S₂O₅: 57,6 % teorico di SO₂, uso 57 %. Di sodio Na₂S₂O₅: 67,4 % teorico, uso 67 %. Bisolfito di ammonio NH₄HSO₃ in soluzione: il titolo in SO₂ (g/L) è sull'etichetta. Per l'ammonio puoi scrivere il contenuto di NH₄⁺ (g/L) dalla scheda del fornitore; se vuoto lo stima dal titolo (1 NH₄⁺ per SO₂). Il solfato di ammonio non contiene SO₂. Con confezione vecchia o aperta da tempo il contenuto effettivo è ridotto del 10 % (stima prudente: ossidazione e umidità).<br>1 mg/L di SO₂ = 0,1 g/hL.</p>
+      <p>Il legame tra libera e combinata si assesta in ore o giorni: rimisura dopo 2–3 giorni. L'ossigeno consuma circa 4 mg/L di libera per ogni mg/L di O₂ disciolto, non incluso nel calcolo.</p>
+      <ul>
+        <li>OIV, Compendium of International Methods of Wine and Must Analysis, SO₂ molecolare.</li>
+        <li>Usseglio-Tomasset L., Di Stefano R., 1980; Chimie oenologique, 1995.</li>
+        <li>Burroughs L.F., Sparks A.H., 1973, Sulphite-binding power of wines and ciders, J. Sci. Food Agric.</li>
+        <li>Sudraud P., Chauvet S., 1985, Activité antilevure de l'anhydride sulfureux moléculaire.</li>
+        <li>Cojocaru G.A., Antoce A.O., 2012, Chemical and biochemical mechanisms of preservatives used in wine.</li>
+        <li>AWRI, Understanding molecular SO₂.</li>
+      </ul>
+    </div>
+  </details>
+
+  <footer><b>Alessandro De Guidi</b> wine consulting</footer>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var S = 64.06;            // mg di SO2 per mmol
+  var KD = 1.5e-3;          // mmol/L (1,5e-6 M), acetaldeide-bisolfito
+  var AC_DEFAULT = 0.45;    // mmol/L (circa 20 mg/L di acetaldeide) se non ci sono dati
+  var MAXG = 2.5;           // fondo scala grafico (mg/L molecolare)
+  var NDOTS = 50;
+  var OLD = 0.90;           // fattore prudente per confezione vecchia
+
+  var state = { color: "bianco", mode: "rec", prod: "K", titre: "400", bind: "mid" };
+  var last = null;
+
+  var prodDef = {
+    K:   { name: "metabisolfito di potassio", solid: true, base: 57, cat: ["potassio", 0.3517] },
+    Na:  { name: "metabisolfito di sodio",    solid: true, base: 67, cat: ["sodio", 0.2419] },
+    NH4: { name: "bisolfito di ammonio (soluzione)", solid: false }
+  };
+
+  // Quota di solforosa aggiunta che si lega (regola pratica)
+  var fixedRate = { secco: 0.33, zucc: 0.40, dolce: 0.50 };
+  var recTargets = {
+    rosso:  { secco: 0.5, zucc: 0.7, dolce: 1.0 },
+    bianco: { secco: 0.6, zucc: 0.8, dolce: 1.2 }
+  };
+  var sugarFactor = { secco: 1, zucc: 1.25, dolce: 1.6 };
+  var colorFactor = { bianco: 1, rosso: 1.15 };
+
+  var zones = [
+    { to: 0.3, color: "#d71921", name: "Insufficiente", text: "Sotto 0,3 mg/L il vino è esposto a lieviti e batteri." },
+    { to: 0.5, color: "#ff8a00", name: "Scarsa", text: "Tra 0,3 e 0,5 mg/L frena Brettanomyces ma non basta per un vino da conservare." },
+    { to: 0.8, color: "#2fb554", name: "Buona", text: "Tra 0,5 e 0,8 mg/L è l'intervallo di conservazione di un vino secco." },
+    { to: 1.2, color: "#22a6b3", name: "Alta", text: "Tra 0,8 e 1,2 mg/L serve per vini con zucchero e a rischio di rifermentazione." },
+    { to: 2.0, color: "#5b5bd6", name: "Molto alta", text: "Tra 1,2 e 2,0 mg/L è più del necessario per un vino secco." },
+    { to: Infinity, color: "#a24bd6", name: "Eccessiva", text: "Oltre 2,0 mg/L la solforosa si sente al naso e appesantisce il gusto." }
+  ];
+  function zoneOf(m) {
+    for (var i = 0; i < zones.length; i++) if (m < zones[i].to) return zones[i];
+    return zones[zones.length - 1];
+  }
+
+  function num(id) {
+    var v = $(id).value.replace(",", ".").trim();
+    return v === "" ? NaN : parseFloat(v);
+  }
+  function fmt(x, d) {
+    if (!isFinite(x)) return "–";
+    return x.toFixed(d).replace(".", ",");
+  }
+  function fmtAmt(x) { return fmt(x, x < 10 ? 2 : (x < 100 ? 1 : 0)); }
+
+  var dotEls = [];
+  function buildGauge() {
+    var h = "", s = "", i;
+    for (i = 0; i < NDOTS; i++) {
+      var v = (i + 0.5) / NDOTS * MAXG;
+      h += '<span style="background:' + zoneOf(v).color + '"></span>';
+    }
+    $("gauge").innerHTML = h;
+    dotEls = $("gauge").children;
+    [0, 0.3, 0.5, 0.8, 1.2, 2.0].forEach(function (v) {
+      s += '<i style="left:' + (v / MAXG * 100) + '%">' + String(v).replace(".", ",") + '</i>';
+    });
+    $("scale").innerHTML = s;
+  }
+  function fillGauge(v) {
+    for (var i = 0; i < dotEls.length; i++) {
+      var c = (i + 0.5) / NDOTS * MAXG;
+      dotEls[i].className = c <= v ? "f" : "";
+    }
+  }
+  function pin(label, v, cls) {
+    var left = Math.max(4, Math.min(96, v / MAXG * 100));
+    return '<div class="pin ' + cls + '" style="left:' + left + '%">' + label + '<br>' + fmt(v, 2) + '</div>';
+  }
+
+  // Equilibrio con i leganti
+  function forward(dS, p) {
+    var tot = p.F0 + dS;
+    var bmax = Math.min(p.Atot, p.b0 + tot / S);
+    var lo = p.b0, hi = bmax;
+    function g(b) {
+      var F = tot - (b - p.b0) * S;
+      return KD * b - (F * (1 - p.frac) / S) * (p.Atot - b);
+    }
+    var b1;
+    if (g(lo) >= 0) b1 = lo;
+    else if (g(hi) <= 0) b1 = hi;
+    else {
+      for (var i = 0; i < 60; i++) {
+        var mid = (lo + hi) / 2;
+        if (g(mid) < 0) lo = mid; else hi = mid;
+      }
+      b1 = (lo + hi) / 2;
+    }
+    return { F1: tot - (b1 - p.b0) * S, b1: b1 };
+  }
+  function solveDose(Ft, p) {
+    if (forward(0, p).F1 >= Ft) return 0;
+    var lo = 0, hi = 2000;
+    for (var i = 0; i < 70; i++) {
+      var mid = (lo + hi) / 2;
+      if (forward(mid, p).F1 < Ft) lo = mid; else hi = mid;
+    }
+    return (lo + hi) / 2;
+  }
+
+  function ck() { return state.color === "rosso" ? "rosso" : "bianco"; }
+  function sugarKey() {
+    if (state.color === "spumante") return "secco";
+    if ($("sweet").checked) return "dolce";
+    if ($("sugar").checked) return "zucc";
+    return "secco";
+  }
+
+  function prodInfo() {
+    var pd = prodDef[state.prod], f = $("old").checked ? OLD : 1;
+    var info = { pd: pd, solid: pd.solid, f: f };
+    if (pd.solid) { info.yld = pd.base * f / 100; info.txt = "Resa in SO₂ usata: " + fmt(pd.base * f, 0) + " %" + (f < 1 ? " (ridotta per confezione vecchia)." : "."); }
+    else { info.titreNom = state.titre === "alt" ? num("titre") : parseFloat(state.titre); info.titre = info.titreNom * f; info.txt = !(info.titre > 0) ? "Scrivi il titolo in SO₂ del prodotto (g/L)." : "Titolo in SO₂ usato: " + fmt(info.titre, 0) + " g/L" + (f < 1 ? " (ridotto per confezione vecchia)." : ". Controlla il titolo sull'etichetta."); }
+    return info;
+  }
+
+  function clearOut() {
+    ["f0","f1","t0","t1","c0","c1","m0","m1","perHl","totAmt"].forEach(function (id) { $(id).textContent = "–"; });
+    $("prodName").textContent = "";
+    $("pins").innerHTML = ""; $("lvl").textContent = "–"; $("dot").style.background = "var(--line)";
+    fillGauge(-1);
+    $("lvlText").textContent = "Scala: SO₂ molecolare in mg/L.";
+    $("notes").innerHTML = ""; $("pkaFoot").textContent = "";
+    $("pdfBtn").disabled = true; last = null;
+  }
+
+  function calc() {
+    var sk = sugarKey();
+    var rec = recTargets[ck()][sk];
+    $("recFoot").textContent = state.mode === "rec"
+      ? "Obiettivo consigliato per il tuo vino: " + fmt(rec, 1) + " mg/L di SO₂ molecolare."
+      : "";
+    var pi = prodInfo();
+    $("prodFoot").textContent = pi.txt;
+    var rate = fixedRate[sk];
+    $("bindFoot").textContent = state.bind === "mid"
+      ? "Dose a metà tra modello di equilibrio e tasso fisso (" + Math.round(rate * 100) + " % si lega)."
+      : (state.bind === "model"
+        ? "Stima il legame dai tuoi valori di libera e totale."
+        : "Considera che il " + Math.round(rate * 100) + " % di quanto aggiungi si leghi.");
+
+    var hl = num("vol"), alc = num("alc"), ph = num("ph"), T = num("temp");
+    var F0 = num("free0"), T0 = num("tot0");
+    if (!isFinite(F0)) F0 = 0;
+    if (!isFinite(T0)) T0 = 0;
+    var tgt = state.mode === "rec" ? rec : num("target");
+
+    var err = $("err"); err.textContent = "";
+    if (!(hl > 0) || !isFinite(alc) || !(ph > 0) || !isFinite(T) || !isFinite(tgt)) {
+      clearOut();
+      $("gramsNote").textContent = state.mode !== "rec" && !isFinite(tgt)
+        ? "Inserisci il valore obiettivo."
+        : "Compila volume, alcol, pH e temperatura.";
+      return;
+    }
+    if (!pi.solid && !(pi.titre > 0)) { clearOut(); $("gramsNote").textContent = "Scrivi il titolo in SO₂ del prodotto."; return; }
+    if (T0 < F0) { err.textContent = "La totale non può essere minore della libera."; T0 = F0; }
+
+    var pKa = 1.9499 + 0.0322 * (T - 20) + 0.01971 * (alc - 10);
+    var ratio = Math.pow(10, ph - pKa);
+    var frac = 1 / (1 + ratio);
+
+    var Ft = state.mode === "free" ? tgt : (tgt * (1 + ratio));
+    var mol0 = F0 * frac;
+
+    // Leganti stimati dallo stato attuale
+    var b0 = Math.max(0, T0 - F0) / S;
+    var x0 = Math.max(F0, 1) * (1 - frac) / S;
+    var a0 = KD * b0 / x0;
+    var noInfo = (T0 - F0) < 1 && F0 < 5;
+    if (noInfo) a0 = Math.max(a0, AC_DEFAULT - b0);
+    var k = colorFactor[ck()] * sugarFactor[sk];
+    a0 = a0 + (k - 1) * (a0 + b0);
+    var p = { F0: F0, b0: b0, Atot: a0 + b0, frac: frac };
+
+    var bound0 = Math.max(0, T0 - F0);
+    var naive = Math.max(0, Ft - F0);
+
+    var dModel = solveDose(Ft, p);
+    var resM = forward(dModel, p);
+    var dFixed = naive / (1 - rate);
+
+    var useFixed = state.bind === "fixed";
+    var dS, F1, bound1, lost, methodName;
+    if (state.bind === "mid") {
+      dS = (dModel + dFixed) / 2;
+      lost = ((resM.b1 - b0) * S + dFixed * rate) / 2;
+      F1 = F0 + dS - lost; bound1 = bound0 + lost;
+      methodName = "media equilibrio e tasso fisso";
+    } else if (useFixed) {
+      dS = dFixed; lost = dS * rate;
+      F1 = F0 + dS - lost; bound1 = bound0 + lost;
+      methodName = "tasso fisso " + Math.round(rate * 100) + " %";
+    } else {
+      dS = dModel; F1 = resM.F1; bound1 = resM.b1 * S; lost = (resM.b1 - b0) * S;
+      methodName = "equilibrio";
+    }
+    var T1 = T0 + dS;
+    var mol1 = F1 * frac;
+
+    // Quantità di prodotto: 1 mg/L di SO2 = 0,1 g/hL
+    function amount(d) {
+      var so2gHl = d * 0.1;
+      var perHl = pi.solid ? so2gHl / pi.yld : so2gHl / pi.titre * 1000;
+      return { perHl: perHl, total: perHl * hl };
+    }
+    var am = amount(dS);
+    var unitHl = pi.solid ? "g/hL" : "mL/hL";
+    var unitTot = pi.solid ? "g" : "mL";
+
+    $("perHl").textContent = fmtAmt(am.perHl);
+    $("perHlU").textContent = unitHl;
+    $("totAmt").textContent = fmtAmt(am.total);
+    $("totAmtU").textContent = unitTot + " in totale per " + fmt(hl, hl % 1 ? 1 : 0) + " hL";
+    $("prodName").textContent = pi.pd.name;
+
+    if (dS <= 0.0001) {
+      $("gramsNote").textContent = "Nessuna aggiunta: la libera attuale raggiunge già l'obiettivo.";
+    } else {
+      var t = fmt(dS, 1) + " mg/L di SO₂ da aggiungere. Sciogli in poco vino e mescola bene.";
+      if (lost >= 0.5) t += " Circa " + fmt(lost, 1) + " mg/L si legano e non restano liberi.";
+      $("gramsNote").textContent = t;
+    }
+
+    $("f0").textContent = fmt(F0, 1); $("f1").textContent = fmt(F1, 1);
+    $("t0").textContent = fmt(T0, 1); $("t1").textContent = fmt(T1, 1);
+    $("c0").textContent = fmt(bound0, 1); $("c1").textContent = fmt(bound1, 1);
+    $("m0").textContent = fmt(mol0, 2); $("m1").textContent = fmt(mol1, 2);
+    $("pkaFoot").textContent = "pKa₁ " + fmt(pKa, 3) + " · il " + fmt(frac * 100, 1) + " % della libera è molecolare.";
+
+    var z = zoneOf(mol1);
+    $("dot").style.background = z.color;
+    $("lvl").textContent = z.name;
+    $("lvlText").textContent = z.text;
+    fillGauge(mol1);
+    var pins = pin("dopo", mol1, "");
+    if (dS > 0.0001 && Math.abs(mol1 - mol0) / MAXG > 0.1) pins = pin("ora", mol0, "now") + pins;
+    $("pins").innerHTML = pins;
+
+    var notes = "", nh4gHl = NaN;
+    if (naive > 0) {
+      notes += '<p>Confronto: equilibrio ' + fmtAmt(amount(dModel).perHl) + ' ' + unitHl + ', tasso fisso ' + Math.round(rate * 100) + ' % ' + fmtAmt(amount(dFixed).perHl) + ' ' + unitHl + '. Se i valori sono vicini la stima è affidabile.</p>';
+    }
+    if (dS > 0.0001) {
+      var prodMgL = am.perHl * 10; // 1 g/hL = 10 mg/L (per i solidi)
+      if (pi.solid) {
+        notes += '<p>Apporta circa ' + fmt(prodMgL * pi.pd.cat[1], 0) + ' mg/L di ' + pi.pd.cat[0] + '.</p>';
+      } else {
+        var nh4c = num("nh4"), nh4est = !(nh4c >= 0);
+        if (nh4est) nh4c = pi.titreNom * 18.04 / S;
+        nh4gHl = am.perHl * nh4c / 1000;
+        notes += '<p>Apporta circa ' + fmt(nh4gHl, 2) + ' g/hL di ammonio (' + fmt(nh4gHl * 10, 1) + ' mg/L, pari a ' + fmt(nh4gHl * 10 * 14.007 / 18.04, 1) + ' mg/L di azoto assimilabile)' + (nh4est ? ', stimato dal titolo: scrivi il valore del tuo fornitore per un dato preciso' : ' con il valore da te inserito') + '. Uso consentito solo in fermentazione (max 0,2 g/L).</p>';
+      }
+      notes += '<p>Rimisura la libera dopo 2–3 giorni e correggi se serve.</p>';
+    }
+    if (ph >= 3.7) notes += '<p>Con pH ' + fmt(ph, 2) + ' solo il ' + fmt(frac * 100, 1) + ' % della libera è attiva: servono dosi alte.</p>';
+    if (noInfo) notes += '<p>Senza misure di solforosa il legame è stimato su valori tipici: la dose reale può variare.</p>';
+    $("notes").innerHTML = notes;
+
+    last = {
+      nome: $("nome").value.trim(), color: state.color, sk: sk, hl: hl, alc: alc, ph: ph, T: T,
+      F0: F0, T0: T0, bound0: bound0, mol0: mol0, F1: F1, T1: T1, bound1: bound1, mol1: mol1,
+      dS: dS, perHl: am.perHl, total: am.total, unitHl: unitHl, unitTot: unitTot,
+      nh4gHl: nh4gHl, prodName: pi.pd.name, prodTxt: pi.txt, old: $("old").checked,
+      tgt: tgt, mode: state.mode, zone: z.name, zoneText: z.text, pKa: pKa, lost: lost, method: methodName
+    };
+    $("pdfBtn").disabled = false;
+  }
+
+  // Controlli
+  function bindSeg(id, key, cb) {
+    $(id).addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      state[key] = b.getAttribute("data-v");
+      Array.prototype.forEach.call($(id).children, function (c) { c.classList.toggle("on", c === b); });
+      if (cb) cb();
+      calc();
+    });
+  }
+  bindSeg("segColor", "color", function () {
+    var sp = state.color === "spumante";
+    $("rowSugar").style.display = sp ? "none" : "flex";
+    $("rowSweet").style.display = sp ? "none" : "flex";
+    if (sp) { $("sugar").checked = false; $("sweet").checked = false; }
+  });
+  bindSeg("segBind", "bind");
+  function syncProd() {
+    var n = state.prod === "NH4";
+    $("segTitre").style.display = n ? "flex" : "none";
+    $("rowTitre").style.display = n && state.titre === "alt" ? "flex" : "none";
+    $("rowNh4").style.display = n ? "flex" : "none";
+  }
+  bindSeg("segTitre", "titre", syncProd);
+  bindSeg("segMode", "mode", function () {
+    var m = state.mode;
+    $("rowTarget").style.display = m === "rec" ? "none" : "flex";
+    $("targetLabel").textContent = m === "mol" ? "Molecolare" : "Libera";
+    $("target").placeholder = m === "mol" ? "es. 0,8" : "es. 30";
+    $("target").value = "";
+  });
+  bindSeg("segProd", "prod", syncProd);
+
+  function tapRow(rowId, inputId, other) {
+    $(rowId).addEventListener("click", function (e) {
+      if (e.target.id !== inputId) $(inputId).checked = !$(inputId).checked;
+      if (other && $(inputId).checked) $(other).checked = false;
+      calc();
+    });
+  }
+  tapRow("rowSugar", "sugar", "sweet");
+  tapRow("rowSweet", "sweet", "sugar");
+  tapRow("rowOld", "old", null);
+
+  ["vol","alc","ph","temp","free0","tot0","target","nome","titre","nh4"].forEach(function (id) {
+    $(id).addEventListener("input", calc);
+  });
+
+  // PDF
+  function clean(s) { return (s || "").replace(/[^\x20-\x7E\u00C0-\u00FF]/g, ""); }
+  //PDF-START
+  function makePdf(d, last, dateStr) {
+    var L = 20, R = 190, y = 22;
+    var grey = [130, 130, 130], ink = [12, 12, 12], line = [200, 200, 200], red = [215, 25, 33];
+    var cols = [[215,25,33],[255,138,0],[47,181,84],[34,166,179],[91,91,214],[162,75,214]];
+    function T(c) { d.setTextColor(c[0], c[1], c[2]); }
+
+    d.setFont("courier", "normal"); d.setFontSize(9); T(grey);
+    d.setFillColor(red[0], red[1], red[2]); d.circle(L + 1, y - 1, 1, "F");
+    d.text("SULFUR DIOXIDE CALCULATOR", L + 5, y);
+    d.text(dateStr, R, y, { align: "right" });
+    y += 11;
+    T(ink); d.setFont("courier", "bold"); d.setFontSize(20);
+    d.text(d.splitTextToSize(clean(last.nome) || "Campione senza nome", R - L)[0], L, y);
+    y += 6;
+    var sugarTxt = last.sk === "dolce" ? "dolce" : (last.sk === "zucc" ? "con residuo zuccherino" : "secco");
+    d.setFont("courier", "normal"); d.setFontSize(10); T(grey);
+    d.text(last.color + ", " + sugarTxt, L, y);
+    y += 6; d.setDrawColor(line[0], line[1], line[2]); d.setLineDashPattern([0.4, 1.2], 0); d.line(L, y, R, y); y += 10;
+
+    d.setFontSize(9); d.text("DA AGGIUNGERE", L, y); y += 12;
+    T(ink); d.setFont("courier", "bold"); d.setFontSize(34);
+    d.text(fmtAmt(last.perHl) + " " + last.unitHl, L, y);
+    y += 8; d.setFont("courier", "normal"); d.setFontSize(11);
+    d.text("Totale alla massa: " + fmtAmt(last.total) + " " + last.unitTot + " per " + fmt(last.hl, last.hl % 1 ? 1 : 0) + " hL", L, y);
+    y += 6; T(grey); d.setFontSize(9);
+    d.text(last.prodName + (last.old ? ", confezione vecchia" : ""), L, y);
+    y += 5; d.text("pari a " + fmt(last.dS, 1) + " mg/L di SO2" + (isFinite(last.nh4gHl) ? ", ammonio " + fmt(last.nh4gHl, 2) + " g/hL" : ""), L, y);
+    y += 6; d.line(L, y, R, y); y += 9;
+
+    function head(a, b, c) {
+      d.setFont("courier", "normal"); d.setFontSize(9); T(grey);
+      d.text(a, L, y); d.text(b, 135, y, { align: "right" }); d.text(c, R, y, { align: "right" });
+      y += 6;
+    }
+    function trow(a, b, c, bold) {
+      d.setFont("courier", "normal"); d.setFontSize(11); T(ink);
+      d.text(a, L, y); d.text(b, 135, y, { align: "right" });
+      d.setFont("courier", bold ? "bold" : "normal"); d.text(c, R, y, { align: "right" });
+      y += 7.5;
+    }
+    head("VALORI", "PRIMA", "DOPO");
+    var U = " mg/L";
+    trow("SO2 libera", fmt(last.F0, 1) + U, fmt(last.F1, 1) + U, true);
+    trow("SO2 totale", fmt(last.T0, 1) + U, fmt(last.T1, 1) + U, true);
+    trow("SO2 combinata", fmt(last.bound0, 1) + U, fmt(last.bound1, 1) + U, false);
+    trow("SO2 molecolare", fmt(last.mol0, 2) + U, fmt(last.mol1, 2) + U, true);
+    y += 1; d.line(L, y, R, y); y += 9;
+
+    d.setFont("courier", "normal"); d.setFontSize(9); T(grey); d.text("PROTEZIONE", L, y); y += 8;
+    d.setFont("courier", "bold"); d.setFontSize(14); T(ink); d.text(last.zone, L, y); y += 6;
+    d.setFont("courier", "normal"); d.setFontSize(9); T(grey);
+    var zl = d.splitTextToSize(last.zoneText, R - L); d.text(zl, L, y); y += zl.length * 4 + 10;
+
+    var by = y, n = 50, step = (R - L) / n, i;
+    for (i = 0; i < n; i++) {
+      var v = (i + 0.5) / n * MAXG, ci = 0;
+      for (var j = 0; j < zones.length; j++) { if (v < zones[j].to) { ci = j; break; } ci = j; }
+      var on = v <= last.mol1;
+      var c = on ? cols[ci] : [225, 225, 225];
+      d.setFillColor(c[0], c[1], c[2]); d.circle(L + step * (i + 0.5), by, 0.9, "F");
+    }
+    d.setFontSize(7); T(grey);
+    [0, 0.3, 0.5, 0.8, 1.2, 2.0].forEach(function (v) {
+      d.text(String(v).replace(".", ","), L + v / MAXG * (R - L), by + 6, { align: "center" });
+    });
+    d.setFont("courier", "bold"); d.setFontSize(8); T(ink);
+    d.text("dopo " + fmt(last.mol1, 2) + " mg/L", L + Math.min(last.mol1, MAXG) / MAXG * (R - L), by - 3.5, { align: "center" });
+    y = by + 10; d.line(L, y, R, y); y += 9;
+
+    d.setFont("courier", "normal"); d.setFontSize(9); T(grey); d.text("CONDIZIONI", L, y); y += 7;
+    d.setFontSize(10);
+    var objTxt = last.mode === "free" ? ("libera " + fmt(last.tgt, 1) + " mg/L")
+      : ("molec. " + fmt(last.tgt, 2) + " mg/L" + (last.mode === "rec" ? " (cons.)" : ""));
+    var grid = [["Alcol", fmt(last.alc, 1) + " % vol"], ["pH", fmt(last.ph, 2)],
+      ["Temp.", fmt(last.T, 0) + " C"], ["pKa1", fmt(last.pKa, 3)]];
+    grid.forEach(function (it, idx) {
+      var col = idx % 2, yy = y + Math.floor(idx / 2) * 6.5, xx = col === 0 ? L : 108;
+      T(grey); d.text(it[0], xx, yy); T(ink); d.text(it[1], xx + 24, yy);
+    });
+    y += 2 * 6.5;
+    [["Obiettivo", objTxt], ["Legame", last.method + ", " + fmt(last.lost, 1) + " mg/L si legano"]].forEach(function (it) {
+      T(grey); d.text(it[0], L, y); T(ink);
+      var ls = d.splitTextToSize(it[1], R - L - 24);
+      d.text(ls, L + 24, y); y += ls.length * 5 + 1.5;
+    });
+
+    d.setLineDashPattern([], 0);
+    d.setFontSize(7); T(grey);
+    var note = "Stima: SO2 molecolare = libera / (1 + 10^(pH - pKa1)), pKa1 corretto per temperatura e alcol (Usseglio-Tomasset, OIV); legame con acetaldeide e altri composti stimato con modello di equilibrio e tasso fisso. Rimisurare la SO2 libera dopo 2-3 giorni.";
+    d.text(d.splitTextToSize(note, R - L), L, 268);
+    d.setLineDashPattern([0.4, 1.2], 0); d.line(L, 280, R, 280); d.setLineDashPattern([], 0);
+    d.setFontSize(9); T(ink);
+    d.setFont("courier", "bold"); var wN = d.getTextWidth("Alessandro De Guidi");
+    d.setFont("courier", "normal"); var wC = d.getTextWidth(" wine consulting");
+    var x0 = 105 - (wN + wC) / 2;
+    d.setFont("courier", "bold"); d.text("Alessandro De Guidi", x0, 287);
+    d.setFont("courier", "normal"); d.text(" wine consulting", x0 + wN, 287);
+    return y;
+  }
+  //PDF-END
+  function pdf() {
+    if (!last) return;
+    if (!window.jspdf) { alert("Libreria PDF non caricata: serve la connessione internet."); return; }
+    var d = new window.jspdf.jsPDF({ unit: "mm", format: "a4" });
+    var now = new Date();
+    var dateStr = now.toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" });
+    makePdf(d, last, dateStr);
+    var safe = (clean(last.nome) || "campione").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "campione";
+    var fname = "so2-" + safe + "-" + now.toISOString().slice(0, 10) + ".pdf";
+    var blob = d.output("blob");
+    if (window.claude && window.claude.use) {
+      window.claude.use("downloads").then(function (dl) {
+        if (dl) return dl.save({ filename: fname, data: blob });
+        deliver(blob, fname, d);
+      }).catch(function (e) { if (!e || e.code !== "declined") deliver(blob, fname, d); });
+      return;
+    }
+    deliver(blob, fname, d);
+  }
+  function deliver(blob, fname, d) {
+    var file = new File([blob], fname, { type: "application/pdf" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: "Sulfur Dioxide Calculator" }).catch(function () {});
+    } else {
+      d.save(fname);
+    }
+  }
+  $("pdfBtn").addEventListener("click", pdf);
+
+  var root = document.documentElement;
+  function applyTheme(t) {
+    root.setAttribute("data-theme", t);
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.setAttribute("content", t === "dark" ? "#000000" : "#ececec");
+    $("themeBtn").textContent = t === "dark" ? "Sfondo chiaro" : "Sfondo scuro";
+  }
+  var th = null;
+  try { th = localStorage.getItem("so2theme"); } catch (e) {}
+  if (th !== "dark" && th !== "light") th = (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+  applyTheme(th);
+  $("themeBtn").addEventListener("click", function () {
+    var t = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    applyTheme(t);
+    try { localStorage.setItem("so2theme", t); } catch (e) {}
+  });
+
+  buildGauge();
+  calc();
+})();
+</script>
+</body>
+</html>
